@@ -1,0 +1,60 @@
+<!DOCTYPE html>
+<html>
+    <head>
+        <title>EX-raid Eligible Gyms in Paris</title>
+        <meta name="viewport" content="width=device-width, initial-scale=1">
+        <link rel="stylesheet" href="https://unpkg.com/leaflet@1.3.1/dist/leaflet.css" integrity="sha512-Rksm5RenBEKSKFjgI3a41vrjkw4EVPlJ3+OiI65vTjIdo9brlAacEuKOiQ5OFh7cOI1bkDwLqdLw3Zg0cRJAAQ==" crossorigin=""/>
+        <style>
+html, body, #mapid { height: 100%; margin: 0; padding: 0 }
+.nameTooltip { background-color: #333; color: #DEDEDE; border: 1px solid rgba(0, 0, 0, 0.25) }
+        </style>
+    </head>
+    <body>
+        <div id="mapid"></div>
+        
+        <!-- Make sure you put this AFTER Leaflet's CSS -->
+        <script src="https://unpkg.com/leaflet@1.3.1/dist/leaflet.js" integrity="sha512-/Nsx9X4HebavoBvEBuyp3I7od5tA0UzAxs+j83KgC8PU0kgB4XiK4Lfe4y4cgBtaRJQEIFCW+oC506aPT2L1zw==" crossorigin=""></script>
+        <script type="text/javascript" src="https://stamen-maps.a.ssl.fastly.net/js/tile.stamen.js?v1.3.0"></script>
+        <script>
+var mymap = L.map('mapid', {maxZoom: 19}).setView([48.8638, 2.3519], 13);
+var layer = new L.StamenTileLayer("toner");
+mymap.addLayer(layer);
+var geoJSONlayer_cells = L.geoJSON().addTo(mymap);
+var gymIcon = L.icon({
+    iconUrl: 'gym_icon2.png',
+    iconSize: [37, 38],
+    iconAnchor: [19, 38],
+});
+var geoJSONlayer_points = L.geoJSON(null, {
+    pointToLayer: function(f, ll) { return L.marker(ll, {icon: gymIcon}); }
+}).bindTooltip(function(layer) {
+    //~ console.log(layer);
+    return String(layer.feature.properties.name + ' (' + layer.feature.properties.level13cellid + ')');
+}, {permanent: false, opacity: 0.8, className: 'nameTooltip'}
+).addTo(mymap);
+
+var oReq = new XMLHttpRequest();
+oReq.addEventListener("load", function()
+{
+    try
+    {
+        var gym_data = JSON.parse(oReq.responseText),
+            cells_data = JSON.parse(oReq.responseText);
+        
+        gym_data.features.splice(0, 1);
+        cells_data.features = cells_data.features.splice(0, 1);
+        
+        console.log(cells_data, gym_data);
+        geoJSONlayer_cells.addData(cells_data);
+        geoJSONlayer_points.addData(gym_data);
+    }
+    catch (e)
+    {
+        console.error(e);
+    }
+});
+oReq.open("GET", "output.geojson");
+oReq.send();
+        </script>
+    </body>
+</html>
