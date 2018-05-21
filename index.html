@@ -47,7 +47,6 @@ var gymIcon = L.icon({
 var geoJSONlayer_points = L.geoJSON(null, {
     pointToLayer: function(f, ll) { return L.marker(ll, {icon: gymIcon}); }
 }).bindTooltip(function(layer) {
-    //~ console.log(layer);
     return String(layer.feature.properties.name + ' (' + layer.feature.properties.level13cellid + ')');
 }, {permanent: false, opacity: 0.8, className: 'nameTooltip'}
 ).addTo(mymap);
@@ -57,13 +56,14 @@ oReq.addEventListener("load", function()
 {
     try
     {
+        // Get the full data set, and then remove (or leave only) the first "feature",
+        // which is the L13 S3 cells.
         var gym_data = JSON.parse(oReq.responseText),
             cells_data = JSON.parse(oReq.responseText);
         
         gym_data.features.splice(0, 1);
         cells_data.features = cells_data.features.splice(0, 1);
         
-        console.log(cells_data, gym_data);
         geoJSONlayer_cells.addData(cells_data);
         geoJSONlayer_points.addData(gym_data);
     }
